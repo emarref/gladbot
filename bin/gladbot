@@ -2,6 +2,9 @@
 
 npm install
 export PATH="node_modules/.bin:node_modules/hubot/node_modules/.bin:$PATH"
-export REDIS_URL=$REDISCLOUD_URL
+
+if [[ -z $REDIS_URL ]]; then
+  export REDIS_URL=$REDISCLOUD_URL
+fi
 
 exec node_modules/.bin/hubot "$@"
