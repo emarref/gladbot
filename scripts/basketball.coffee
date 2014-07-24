@@ -39,4 +39,4 @@ module.exports = (robot) ->
       score1     = resultRows.eq(3).text().trim()
       score2     = resultRows.eq(5).text().trim()
       winLose    = if winnerRow.text() == 'W' then 'won' else 'lost'
-      msg.send "#{teamName} #{winLose} with #{score1}-#{score2} against #{opponent} on #{date} #{homeUrl}"
+      msg.send "#{teamName} #{winLose} #{score1}-#{score2} against #{opponent} on #{date} #{homeUrl}"
