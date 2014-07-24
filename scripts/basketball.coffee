@@ -5,59 +5,38 @@
 #   "cheerio": "https://github.com/cheeriojs/cheerio"
 #
 # Configuration:
-#   BASKETBALL_URL
+#   BASKETBALL_TEAM_HOME_URL
 #   BASKETBALL_TEAM_NAME
 #
 # Commands:
-#   hubot when is the next basketball game? - retrieves the date and time of the next game
+#   hubot when is basketball? - retrieves the date and time of the next game
 #
 # Notes:
 #   None
 #
 # Author:
-#   jinthagerman
+#   emarref
 
-Cheerio = require 'cheerio'
-Entities = require('html-entities').AllHtmlEntities;
-
-URL = process.env.BASKETBALL_URL
-teamName = process.env.BASKETBALL_TEAM_NAME
+http = require 'http'
+cheerio = require 'cheerio'
+util = require 'util'
 
 module.exports = (robot) ->
 
-  robot.respond /when( i|')s basketball/i, (msg) ->
-    msg.http(URL)
-    .get() (err, res, body) ->
-      $ = Cheerio.load body
+  teamName = process.env.BASKETBALL_TEAM_NAME
+  homeUrl  = process.env.BASKETBALL_TEAM_HOME_URL
 
-      return if findGameTime msg, $, 'away-team-name'
-      return if findGameTime msg, $, 'home-team-name'
+  getPage = (msg, callback) ->
+    msg.http(homeUrl).get() (err, res, body) ->
+      callback cheerio.load(body);
 
-      msg.send 'No game found'
-
-findGameTime = (msg, $, className) ->
-  found = false
-
-  # Find divs with className
-  $("div[class=#{ className }]").each (i, elem) ->
-
-    # Get text within a tag
-    name = $(this).find('a').text()
-
-    return unless name is teamName
-
-    # Look for ancestor with fixturerow as class
-    fixtureRow = $(this).closest 'div[class*=fixturerow]'
-    return unless fixtureRow?
-
-    # Find match-time div
-    matchTime = fixtureRow.find 'div[class=match-time]'
-    return unless matchTime?
-
-    entities = new Entities();
-    # Post search results
-    msg.send 'Next game is at ' + entities.decode(matchTime.html())
-    found = true
-    return false # Break each loop early
-
-  return found
+  robot.respond /last b(asket)?ball game/i, (msg) ->
+    getPage msg, ($) ->
+      resultRows = $('td.resultrow', '#teamhome-last5-wrap')
+      winnerRow  = $('td.winner', '#teamhome-last5-wrap')
+      date       = resultRows.eq(0).text().trim()
+      opponent   = resultRows.eq(2).text().trim()
+      score1     = resultRows.eq(3).text().trim()
+      score2     = resultRows.eq(5).text().trim()
+      winLose    = if winnerRow.text() == 'W' then 'won' else 'lost'
+      msg.send "#{teamName} #{winLose} with #{score1}-#{score2} against #{opponent} on #{date} #{homeUrl}"
