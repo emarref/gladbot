@@ -16,7 +16,9 @@
   "dependencies": {
     "hubot": "2.6.2",
     "hubot-scripts": ">= 2.1.0",
-    "hubot-gtalk": "2.0.*"
+    "hubot-gtalk": "2.0.*",
+    "cheerio": "0.17.*",
+    "html-entities": "1.0.*"
   },
 
   "engines": {
